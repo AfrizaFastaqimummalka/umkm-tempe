@@ -112,6 +112,7 @@ def dashboard_summary(request):
             'tanggal': d.strftime('%d/%m'),
             'pemasukan': float(masuk),
             'pengeluaran': float(keluar),
+            'saldo_bersih': float(masuk - keluar),
         })
 
     return Response({

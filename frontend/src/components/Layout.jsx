@@ -3,15 +3,22 @@ import { Outlet, NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   ChartBar, ArrowCircleUp, ArrowCircleDown,
-  Users, FileText, SignOut, List, X
+  Users, FileText, SignOut, List, X,
+  Package, Truck, Gear, BellRinging
 } from '@phosphor-icons/react'
+
+const COMPANY_NAME = 'Pabrik Tempe Pak Iwan'
 
 const navItems = [
   { to: '/dashboard',   label: 'Dashboard',    icon: ChartBar },
   { to: '/pemasukan',   label: 'Pemasukan',    icon: ArrowCircleUp },
   { to: '/pengeluaran', label: 'Pengeluaran',  icon: ArrowCircleDown },
   { to: '/pelanggan',   label: 'Pelanggan',    icon: Users },
+  { to: '/inventori',   label: 'Inventori',    icon: Package },
+  { to: '/pemasok',     label: 'Pemasok',      icon: Truck },
   { to: '/laporan',     label: 'Laporan',      icon: FileText },
+  { to: '/admin-notifikasi', label: 'Admin Notif', icon: BellRinging },
+  { to: '/pengaturan',  label: 'Pengaturan',   icon: Gear },
 ]
 
 export default function Layout() {
@@ -38,8 +45,8 @@ export default function Layout() {
             <span style={{ fontSize: 18 }}>🫘</span>
           </div>
           <div>
-            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--gray-900)', lineHeight: 1.2 }}>UMKM Tempe</div>
-            <div style={{ fontSize: 11, color: 'var(--gray-500)', fontWeight: 500 }}>Keuangan Admin</div>
+            <div style={{ fontWeight: 700, fontSize: 14, color: 'var(--gray-900)', lineHeight: 1.2 }}>{COMPANY_NAME}</div>
+            <div style={{ fontSize: 11, color: 'var(--gray-500)', fontWeight: 500 }}>Sistem Keuangan</div>
           </div>
         </div>
       </div>
@@ -73,22 +80,24 @@ export default function Layout() {
         ))}
       </nav>
 
-      {/* Logout */}
-      <div style={{ padding: '12px' }}>
+      {/* Logout - More visible button */}
+      <div style={{ padding: '12px', marginTop: 'auto' }}>
         <div style={{ height: 1, background: 'var(--gray-100)', marginBottom: 12 }} />
         <button
           onClick={handleLogout}
           style={{
-            display: 'flex', alignItems: 'center', gap: 10,
-            width: '100%', padding: '10px 12px', borderRadius: 'var(--radius-md)',
-            fontSize: 14, fontWeight: 500, color: 'var(--gray-500)',
-            background: 'transparent', transition: 'all .15s',
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
+            width: '100%', padding: '12px 16px', borderRadius: 'var(--radius-md)',
+            fontSize: 14, fontWeight: 600, color: '#fff',
+            background: 'var(--red-500)', border: 'none',
+            cursor: 'pointer', transition: 'all .15s',
+            boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)',
           }}
-          onMouseEnter={e => { e.currentTarget.style.background = 'var(--red-50)'; e.currentTarget.style.color = 'var(--red-600)' }}
-          onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--gray-500)' }}
+          onMouseEnter={e => { e.currentTarget.style.background = 'var(--red-600)'; e.currentTarget.style.transform = 'translateY(-1px)' }}
+          onMouseLeave={e => { e.currentTarget.style.background = 'var(--red-500)'; e.currentTarget.style.transform = 'translateY(0)' }}
         >
-          <SignOut size={18} />
-          Keluar
+          <SignOut size={18} weight="bold" />
+          Keluar (Logout)
         </button>
       </div>
     </>

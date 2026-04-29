@@ -35,7 +35,7 @@ const CustomTooltip = ({ active, payload, label }) => {
       <p style={{ fontWeight: 700, marginBottom: 6, color: 'var(--gray-700)' }}>{label}</p>
       {payload.map(p => (
         <div key={p.name} style={{ display: 'flex', justifyContent: 'space-between', gap: 20, color: p.fill, marginBottom: 2 }}>
-          <span>{p.name === 'pemasukan' ? 'Pemasukan' : 'Pengeluaran'}</span>
+          <span>{p.name === 'pemasukan' ? 'Pemasukan' : p.name === 'pengeluaran' ? 'Pengeluaran' : 'Saldo Bersih'}</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{formatRupiah(p.value)}</span>
         </div>
       ))}
@@ -119,25 +119,30 @@ export default function DashboardPage() {
         boxShadow: 'var(--shadow-sm)',
       }}>
         <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--gray-800)', marginBottom: 4 }}>Grafik 7 Hari Terakhir</h2>
-        <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 20 }}>Perbandingan pemasukan vs pengeluaran harian</p>
+        <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 20 }}>Perbandingan pemasukan, pengeluaran, dan saldo bersih</p>
 
         {loading ? (
           <div style={{ height: 260, background: 'var(--gray-50)', borderRadius: 10, animation: 'pulse 1.5s ease infinite' }} />
         ) : (
           <ResponsiveContainer width="100%" height={260}>
-            <BarChart data={data?.last_7_days || []} barCategoryGap="30%" barGap={4}>
+            <BarChart data={data?.last_7_days || []} barCategoryGap="20%" barGap={3}>
               <XAxis dataKey="tanggal" tick={{ fontSize: 12, fill: 'var(--gray-400)' }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fontSize: 11, fill: 'var(--gray-400)' }} axisLine={false} tickLine={false} tickFormatter={v => v >= 1e6 ? `${(v/1e6).toFixed(0)}jt` : `${(v/1e3).toFixed(0)}rb`} />
               <Tooltip content={<CustomTooltip />} cursor={{ fill: 'var(--gray-50)', radius: 6 }} />
-              <Bar dataKey="pemasukan" name="pemasukan" fill="var(--green-500)" radius={[6, 6, 0, 0]} />
-              <Bar dataKey="pengeluaran" name="pengeluaran" fill="var(--red-500)" radius={[6, 6, 0, 0]} />
+              <Bar dataKey="pemasukan" name="pemasukan" fill="var(--green-500)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="pengeluaran" name="pengeluaran" fill="var(--red-500)" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="saldo_bersih" name="saldo_bersih" fill="var(--blue-500)" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         )}
 
         {/* Legend */}
-        <div style={{ display: 'flex', gap: 20, marginTop: 12 }}>
-          {[{ label: 'Pemasukan', color: 'var(--green-500)' }, { label: 'Pengeluaran', color: 'var(--red-500)' }].map(({ label, color }) => (
+        <div style={{ display: 'flex', gap: 20, marginTop: 12, flexWrap: 'wrap' }}>
+          {[
+            { label: 'Pemasukan', color: 'var(--green-500)' },
+            { label: 'Pengeluaran', color: 'var(--red-500)' },
+            { label: 'Saldo Bersih', color: 'var(--blue-500)' }
+          ].map(({ label, color }) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, color: 'var(--gray-500)' }}>
               <div style={{ width: 12, height: 12, borderRadius: 3, background: color }} />
               {label}

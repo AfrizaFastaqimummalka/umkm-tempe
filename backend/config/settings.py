@@ -5,7 +5,7 @@ Django settings for UMKM Tempe Financial System
 import os
 from pathlib import Path
 from datetime import timedelta
-import dj_database_url
+from urllib.parse import urlparse
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -17,17 +17,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ─────────────────────────────
 SECRET_KEY = os.environ.get(
     'SECRET_KEY',
-    'django-insecure-ganti-ini-di-production'
+    'django-insecure-ganti-ini-di-production-dengan-key-panjang'
 )
 
 DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = [
-    "localhost",
-    "127.0.0.1",
-    ".ngrok-free.app",
-    ".ngrok-free.dev"
-]
+ALLOWED_HOSTS = os.environ.get(
+    'ALLOWED_HOSTS',
+    'localhost,127.0.0.1'
+).split(',')
 
 # ─────────────────────────────
 # INSTALLED APPS
@@ -39,33 +37,28 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-    # Third party
     'rest_framework',
     'rest_framework_simplejwt',
     'corsheaders',
-
-    # Local apps
     'apps.keuangan',
     'apps.pelanggan',
     'apps.laporan',
     'apps.telegram_bot',
+    'apps.inventori',
+    'apps.pemasok',
+    'apps.pengaturan',
 ]
 
 # ─────────────────────────────
-# MIDDLEWARE
+# MIDDLEWARE — corsheaders HARUS PALING ATAS
 # ─────────────────────────────
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-
-    'corsheaders.middleware.CorsMiddleware',
-
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
-
     'django.middleware.csrf.CsrfViewMiddleware',
-
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
@@ -73,9 +66,6 @@ MIDDLEWARE = [
 
 ROOT_URLCONF = 'config.urls'
 
-# ─────────────────────────────
-# TEMPLATES
-# ─────────────────────────────
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -95,20 +85,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'config.wsgi.application'
 
 # ─────────────────────────────
-# DATABASE (NeonDB PostgreSQL)
+# DATABASE — NeonDB PostgreSQL
+# Tidak pakai dj_database_url, parse manual agar lebih stabil
 # ─────────────────────────────
-DATABASE_URL = os.environ.get('DATABASE_URL')
+_DATABASE_URL = os.environ.get('DATABASE_URL', '')
 
-if DATABASE_URL:
+if _DATABASE_URL:
+    _p = urlparse(_DATABASE_URL)
     DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600
-        )
-    }
-
-    DATABASES['default']['OPTIONS'] = {
-        'sslmode': 'require'
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _p.path.lstrip('/'),
+            'USER': _p.username,
+            'PASSWORD': _p.password,
+            'HOST': _p.hostname,
+            'PORT': _p.port or 5432,
+            'OPTIONS': {
+                'sslmode': 'require',
+            },
+        }
     }
 else:
     DATABASES = {
@@ -150,30 +145,43 @@ SIMPLE_JWT = {
 }
 
 # ─────────────────────────────
-# CORS (React Frontend)
+# CORS — baca dari env, JANGAN pakai ALLOW_ALL di production
 # ─────────────────────────────
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://localhost:3000"
+_cors_raw = os.environ.get('CORS_ALLOWED_ORIGINS', '')
+
+if _cors_raw:
+    CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors_raw.split(',') if o.strip()]
+else:
+    CORS_ALLOWED_ORIGINS = [
+        'http://localhost:5173',
+        'http://localhost:3000',
+    ]
+
+CORS_ALLOW_ALL_ORIGINS = False
+CORS_ALLOW_CREDENTIALS = True
+
+CORS_ALLOW_METHODS = [
+    'DELETE', 'GET', 'OPTIONS', 'PATCH', 'POST', 'PUT',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True  # DEV ONLY
+CORS_ALLOW_HEADERS = [
+    'accept', 'accept-encoding', 'authorization',
+    'content-type', 'dnt', 'origin', 'user-agent',
+    'x-csrftoken', 'x-requested-with',
+]
 
 # ─────────────────────────────
 # TELEGRAM BOT
 # ─────────────────────────────
 TELEGRAM_BOT_TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '')
-
-TELEGRAM_ALLOWED_CHAT_IDS = (
-    os.environ.get('TELEGRAM_ALLOWED_CHAT_IDS', '')
-).split(',') if os.environ.get('TELEGRAM_ALLOWED_CHAT_IDS') else []
+_chat_ids = os.environ.get('TELEGRAM_ALLOWED_CHAT_IDS', '')
+TELEGRAM_ALLOWED_CHAT_IDS = [c.strip() for c in _chat_ids.split(',') if c.strip()]
 
 # ─────────────────────────────
 # INTERNATIONALIZATION
 # ─────────────────────────────
 LANGUAGE_CODE = 'id'
 TIME_ZONE = 'Asia/Jakarta'
-
 USE_I18N = True
 USE_TZ = True
 
@@ -182,13 +190,9 @@ USE_TZ = True
 # ─────────────────────────────
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
-# ─────────────────────────────
-# DEFAULT AUTO FIELD
-# ─────────────────────────────
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

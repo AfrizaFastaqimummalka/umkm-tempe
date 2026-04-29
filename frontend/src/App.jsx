@@ -7,7 +7,11 @@ import DashboardPage from './pages/DashboardPage'
 import PemasukanPage from './pages/PemasukanPage'
 import PengeluaranPage from './pages/PengeluaranPage'
 import PelangganPage from './pages/PelangganPage'
+import InventoriPage from './pages/InventoriPage'
+import PemasokPage from './pages/PemasokPage'
 import LaporanPage from './pages/LaporanPage'
+import PengaturanPage from './pages/PengaturanPage'
+import AdminNotifikasiPage from './pages/AdminNotifikasiPage'
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth()
@@ -33,7 +37,11 @@ export default function App() {
             <Route path="pemasukan" element={<PemasukanPage />} />
             <Route path="pengeluaran" element={<PengeluaranPage />} />
             <Route path="pelanggan" element={<PelangganPage />} />
+            <Route path="inventori" element={<InventoriPage />} />
+            <Route path="pemasok" element={<PemasokPage />} />
             <Route path="laporan" element={<LaporanPage />} />
+            <Route path="pengaturan" element={<PengaturanPage />} />
+            <Route path="admin-notifikasi" element={<AdminNotifikasiPage />} />
           </Route>
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>

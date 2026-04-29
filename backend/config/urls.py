@@ -23,4 +23,13 @@ urlpatterns = [
 
     # ── Telegram Webhook ──────────────────────────
     path('api/', include('apps.telegram_bot.urls')),
+
+    # ── Inventori (Stock Management) ──────────────
+    path('api/inventori/', include('apps.inventori.urls')),
+
+    # ── Pemasok (Supplier) ────────────────────────
+    path('api/pemasok/', include('apps.pemasok.urls')),
+
+    # ── Pengaturan (Settings) ─────────────────────
+    path('api/', include('apps.pengaturan.urls')),
 ]

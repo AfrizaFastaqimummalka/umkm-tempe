@@ -19,7 +19,18 @@ export function PageHeader({ title, subtitle, action }) {
 // ─────────────────────────────────────────────
 // BUTTON
 // ─────────────────────────────────────────────
-export function Button({ children, variant = 'primary', size = 'md', onClick, type = 'button', disabled, style: extraStyle }) {
+export function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  onClick,
+  type = 'button',
+  disabled,
+  style: extraStyle,
+  icon: Icon,
+  color,
+  title,
+}) {
   const base = {
     display: 'inline-flex', alignItems: 'center', gap: 6,
     fontWeight: 600, borderRadius: 'var(--radius-md)',
@@ -27,30 +38,34 @@ export function Button({ children, variant = 'primary', size = 'md', onClick, ty
     padding: size === 'sm' ? '6px 12px' : '9px 18px',
     cursor: disabled ? 'not-allowed' : 'pointer',
     opacity: disabled ? 0.6 : 1,
+    border: 'none',
   }
   const variants = {
-    primary: { background: 'var(--green-500)', color: '#fff', border: 'none' },
-    secondary: { background: '#fff', color: 'var(--gray-700)', border: '1px solid var(--gray-300)' },
-    danger: { background: 'var(--red-500)', color: '#fff', border: 'none' },
-    ghost: { background: 'transparent', color: 'var(--gray-600)', border: '1px solid transparent' },
+    primary:   { background: 'var(--green-500)', color: '#fff',            border: 'none' },
+    secondary: { background: '#fff',             color: 'var(--gray-700)', border: '1px solid var(--gray-300)' },
+    danger:    { background: 'var(--red-500)',   color: '#fff',            border: 'none' },
+    ghost:     { background: 'transparent',      color: color || 'var(--gray-600)', border: '1px solid transparent' },
   }
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
+      title={title}
       style={{ ...base, ...variants[variant], ...extraStyle }}
       onMouseEnter={e => {
         if (disabled) return
-        if (variant === 'primary') e.currentTarget.style.background = 'var(--green-600)'
+        if (variant === 'primary')   e.currentTarget.style.background = 'var(--green-600)'
         if (variant === 'secondary') e.currentTarget.style.background = 'var(--gray-50)'
-        if (variant === 'danger') e.currentTarget.style.background = 'var(--red-600)'
+        if (variant === 'danger')    e.currentTarget.style.background = 'var(--red-600)'
+        if (variant === 'ghost')     e.currentTarget.style.background = 'var(--gray-100)'
       }}
       onMouseLeave={e => {
         if (disabled) return
         e.currentTarget.style.background = variants[variant].background
       }}
     >
+      {Icon && <Icon size={size === 'sm' ? 15 : 17} />}
       {children}
     </button>
   )
@@ -78,42 +93,75 @@ export function FormField({ label, error, children, required }) {
 // ─────────────────────────────────────────────
 // INPUT
 // ─────────────────────────────────────────────
-export function Input({ type = 'text', value, onChange, placeholder, name, required, min, style: extra }) {
-  return (
+export function Input({
+  type = 'text', value, onChange, placeholder, name,
+  required, min, style: extra, label, step,
+}) {
+  const inputEl = (
     <input
       type={type} value={value} onChange={onChange}
-      placeholder={placeholder} name={name} required={required} min={min}
+      placeholder={placeholder} name={name}
+      required={required} min={min} step={step}
       style={{
         padding: '8px 12px', borderRadius: 'var(--radius-sm)',
         border: '1.5px solid var(--gray-300)', fontSize: 14,
         color: 'var(--gray-900)', background: '#fff',
-        transition: 'border .15s', width: '100%', ...extra,
+        transition: 'border .15s', width: '100%', boxSizing: 'border-box',
+        ...(label ? {} : extra),
       }}
       onFocus={e => e.target.style.borderColor = 'var(--green-500)'}
-      onBlur={e => e.target.style.borderColor = 'var(--gray-300)'}
+      onBlur={e  => e.target.style.borderColor  = 'var(--gray-300)'}
     />
   )
+
+  if (label) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...extra }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+          {label} {required && <span style={{ color: 'var(--red-500)' }}>*</span>}
+        </label>
+        {inputEl}
+      </div>
+    )
+  }
+  return inputEl
 }
 
 // ─────────────────────────────────────────────
 // SELECT
 // ─────────────────────────────────────────────
-export function Select({ value, onChange, name, children, style: extra }) {
-  return (
+export function Select({ value, onChange, name, children, style: extra, label, options }) {
+  const selectEl = (
     <select
       value={value} onChange={onChange} name={name}
       style={{
         padding: '8px 12px', borderRadius: 'var(--radius-sm)',
         border: '1.5px solid var(--gray-300)', fontSize: 14,
         color: 'var(--gray-900)', background: '#fff', width: '100%',
-        cursor: 'pointer', ...extra,
+        cursor: 'pointer', boxSizing: 'border-box',
+        ...(label ? {} : extra),
       }}
       onFocus={e => e.target.style.borderColor = 'var(--green-500)'}
-      onBlur={e => e.target.style.borderColor = 'var(--gray-300)'}
+      onBlur={e  => e.target.style.borderColor  = 'var(--gray-300)'}
     >
-      {children}
+      {/* Support both options array and children */}
+      {options
+        ? options.map(opt => <option key={opt.value} value={opt.value}>{opt.label}</option>)
+        : children}
     </select>
   )
+
+  if (label) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 5, ...extra }}>
+        <label style={{ fontSize: 13, fontWeight: 600, color: 'var(--gray-700)' }}>
+          {label}
+        </label>
+        {selectEl}
+      </div>
+    )
+  }
+  return selectEl
 }
 
 // ─────────────────────────────────────────────
@@ -131,16 +179,18 @@ export function Textarea({ value, onChange, name, placeholder, rows = 3 }) {
         resize: 'vertical', width: '100%',
       }}
       onFocus={e => e.target.style.borderColor = 'var(--green-500)'}
-      onBlur={e => e.target.style.borderColor = 'var(--gray-300)'}
+      onBlur={e  => e.target.style.borderColor  = 'var(--gray-300)'}
     />
   )
 }
 
 // ─────────────────────────────────────────────
 // MODAL
+// Support both `open` and `isOpen` props
 // ─────────────────────────────────────────────
-export function Modal({ open, onClose, title, children, width = 500 }) {
-  if (!open) return null
+export function Modal({ open, isOpen, onClose, title, children, width = 500 }) {
+  const visible = open || isOpen
+  if (!visible) return null
   return (
     <div
       onClick={e => e.target === e.currentTarget && onClose()}
@@ -164,7 +214,7 @@ export function Modal({ open, onClose, title, children, width = 500 }) {
           <h3 style={{ fontSize: 16, fontWeight: 700, color: 'var(--gray-900)' }}>{title}</h3>
           <button
             onClick={onClose}
-            style={{ background: 'none', padding: 4, borderRadius: 6, display: 'flex', color: 'var(--gray-400)' }}
+            style={{ background: 'none', border: 'none', padding: 4, borderRadius: 6, display: 'flex', color: 'var(--gray-400)', cursor: 'pointer' }}
           >
             <X size={20} />
           </button>
@@ -180,43 +230,56 @@ export function Modal({ open, onClose, title, children, width = 500 }) {
 
 // ─────────────────────────────────────────────
 // TABLE
+// Support both headers-array mode and custom thead/tbody children
 // ─────────────────────────────────────────────
 export function Table({ headers, children, loading }) {
-  return (
-    <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
-        <thead>
-          <tr style={{ background: 'var(--gray-50)' }}>
-            {headers.map((h, i) => (
-              <th key={i} style={{
-                padding: '10px 14px', textAlign: 'left',
-                fontWeight: 600, fontSize: 12, color: 'var(--gray-500)',
-                letterSpacing: '.04em', textTransform: 'uppercase',
-                borderBottom: '1px solid var(--gray-200)',
-                whiteSpace: 'nowrap',
-              }}>{h}</th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
-            <tr>
-              <td colSpan={headers.length} style={{ textAlign: 'center', padding: 40, color: 'var(--gray-400)' }}>
-                <SkeletonRows count={4} cols={headers.length} />
-              </td>
+  // If headers provided → render managed table structure
+  if (headers) {
+    return (
+      <div style={{ overflowX: 'auto', borderRadius: 'var(--radius-md)', border: '1px solid var(--gray-200)' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+          <thead>
+            <tr style={{ background: 'var(--gray-50)' }}>
+              {headers.map((h, i) => (
+                <th key={i} style={{
+                  padding: '10px 14px', textAlign: 'left',
+                  fontWeight: 600, fontSize: 12, color: 'var(--gray-500)',
+                  letterSpacing: '.04em', textTransform: 'uppercase',
+                  borderBottom: '1px solid var(--gray-200)',
+                  whiteSpace: 'nowrap',
+                }}>{h}</th>
+              ))}
             </tr>
-          ) : children}
-        </tbody>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr>
+                <td colSpan={headers.length} style={{ textAlign: 'center', padding: 40, color: 'var(--gray-400)' }}>
+                  <SkeletonRows count={4} cols={headers.length} />
+                </td>
+              </tr>
+            ) : children}
+          </tbody>
+        </table>
+      </div>
+    )
+  }
+
+  // If no headers → render table wrapper only, children provide their own thead/tbody
+  return (
+    <div style={{ overflowX: 'auto' }}>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+        {children}
       </table>
     </div>
   )
 }
 
-export function Tr({ children, onClick }) {
+export function Tr({ children, onClick, style: extra }) {
   return (
     <tr
       onClick={onClick}
-      style={{ borderBottom: '1px solid var(--gray-100)', cursor: onClick ? 'pointer' : 'default' }}
+      style={{ borderBottom: '1px solid var(--gray-100)', cursor: onClick ? 'pointer' : 'default', ...extra }}
       onMouseEnter={e => { if (onClick) e.currentTarget.style.background = 'var(--gray-50)' }}
       onMouseLeave={e => { e.currentTarget.style.background = 'transparent' }}
     >
@@ -225,12 +288,12 @@ export function Tr({ children, onClick }) {
   )
 }
 
-export function Td({ children, align = 'left', muted }) {
+export function Td({ children, align = 'left', muted, style: extra }) {
   return (
     <td style={{
       padding: '12px 14px', color: muted ? 'var(--gray-400)' : 'var(--gray-700)',
       textAlign: align, fontFamily: typeof children === 'number' ? 'var(--font-mono)' : 'inherit',
-      fontSize: 14,
+      fontSize: 14, ...extra,
     }}>
       {children}
     </td>
@@ -265,15 +328,17 @@ function SkeletonRows({ count = 3, cols = 4 }) {
 
 // ─────────────────────────────────────────────
 // BADGE
+// Support both `color` and `variant` props
 // ─────────────────────────────────────────────
-export function Badge({ children, color = 'gray' }) {
+export function Badge({ children, color, variant }) {
+  const key = variant || color || 'gray'
   const colors = {
     green: { bg: 'var(--green-50)', text: 'var(--green-700)' },
     red:   { bg: 'var(--red-50)',   text: 'var(--red-600)' },
     amber: { bg: 'var(--amber-50)', text: '#92400E' },
     gray:  { bg: 'var(--gray-100)', text: 'var(--gray-600)' },
   }
-  const c = colors[color] || colors.gray
+  const c = colors[key] || colors.gray
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px',
@@ -287,17 +352,24 @@ export function Badge({ children, color = 'gray' }) {
 
 // ─────────────────────────────────────────────
 // EMPTY STATE
+// Support both structured props and simple `message` prop.
+// Use `asRow={false}` when used outside a <table> (e.g. standalone div).
+// Default is asRow=true for use inside <Table headers=...>.
 // ─────────────────────────────────────────────
-export function EmptyState({ title, subtitle, action }) {
+export function EmptyState({ title, subtitle, action, message, asRow = true }) {
+  const inner = (
+    <div style={{ textAlign: 'center', padding: '48px 20px' }}>
+      <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
+      <p style={{ fontWeight: 600, color: 'var(--gray-700)', marginBottom: 4 }}>{title || message || 'Belum ada data'}</p>
+      {subtitle && <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 16 }}>{subtitle}</p>}
+      {action}
+    </div>
+  )
+  if (!asRow) return inner
   return (
     <tr>
-      <td colSpan={99}>
-        <div style={{ textAlign: 'center', padding: '48px 20px' }}>
-          <div style={{ fontSize: 40, marginBottom: 12 }}>📋</div>
-          <p style={{ fontWeight: 600, color: 'var(--gray-700)', marginBottom: 4 }}>{title}</p>
-          {subtitle && <p style={{ fontSize: 13, color: 'var(--gray-400)', marginBottom: 16 }}>{subtitle}</p>}
-          {action}
-        </div>
+      <td colSpan={99} style={{ padding: 0 }}>
+        {inner}
       </td>
     </tr>
   )

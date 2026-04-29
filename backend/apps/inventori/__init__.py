@@ -1,0 +1,1 @@
+# Inventori app for stock management
